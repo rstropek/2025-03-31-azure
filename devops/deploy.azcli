@@ -28,3 +28,14 @@ DEPLOY_RESULT=$(az deployment group create \
     | jq .properties.outputs)
 ACR_NAME=$(echo $DEPLOY_RESULT | jq -r .registryName.value)
 echo "ACR name: $ACR_NAME"
+
+# Deploy Project Infrastructure
+DEPLOY_RESULT=$(az deployment group create \
+    --resource-group $RG \
+    --name Deployment-$(date +"%Y-%m-%dT%H-%M-%S") \
+    --template-file project-infrastructure.bicep \
+    --parameters \
+        projectName=$PROJECT_NAME \
+        tags="{\"Project\":\"$PROJECT_NAME\"}" \
+        adminPrincipalId=$ADMIN_PRINCIPAL_ID \
+    | jq .properties.outputs)
