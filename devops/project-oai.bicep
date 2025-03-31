@@ -84,6 +84,9 @@ resource embeddingsDeployment 'Microsoft.CognitiveServices/accounts/deployments@
     }
     raiPolicyName: 'DefaultV2'
   }
+  dependsOn: [
+    deployment
+  ]
 }
 
 output accountName string = account.name
