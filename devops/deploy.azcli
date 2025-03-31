@@ -37,5 +37,4 @@ DEPLOY_RESULT=$(az deployment group create \
     --parameters \
         projectName=$PROJECT_NAME \
         tags="{\"Project\":\"$PROJECT_NAME\"}" \
-        adminPrincipalId=$ADMIN_PRINCIPAL_ID \
     | jq .properties.outputs)
