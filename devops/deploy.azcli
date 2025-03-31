@@ -1,7 +1,7 @@
 
 LOCATION=swedencentral
 PROJECT_NAME=uzh-training-live
-# ADMIN_PRINCIPAL_ID=81686fe2-9ab8-4640-862c-af20fca5b6ed
+ADMIN_PRINCIPAL_ID=81686fe2-9ab8-4640-862c-af20fca5b6ed
 
 # Deploy resource group
 RGNAMES=$(az deployment sub create \
@@ -37,4 +37,5 @@ DEPLOY_RESULT=$(az deployment group create \
     --parameters \
         projectName=$PROJECT_NAME \
         tags="{\"Project\":\"$PROJECT_NAME\"}" \
+        adminPrincipalId=$ADMIN_PRINCIPAL_ID \
     | jq .properties.outputs)
