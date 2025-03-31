@@ -1,0 +1,18 @@
+
+LOCATION=swedencentral
+PROJECT_NAME=uzh-training-live
+# ADMIN_PRINCIPAL_ID=81686fe2-9ab8-4640-862c-af20fca5b6ed
+
+# Deploy resource group
+RGNAMES=$(az deployment sub create \
+    --name Deployment-$(date +"%Y-%m-%dT%H-%M-%S") \
+    --template-file resource-group.bicep \
+    --location $LOCATION \
+    --parameters \
+        projectName=$PROJECT_NAME \
+        location=$LOCATION \
+    | jq .properties.outputs)
+RG=$(echo $RGNAMES | jq -r .rgName.value)
+SUBSCRIPTION=$(echo $RGNAMES | jq -r .subscriptionId.value)
+echo "Resource group: $RG"
+echo "Subscription ID: $SUBSCRIPTION"
