@@ -14,3 +14,11 @@ module acrModule './central-acr.bicep' = {
     tags: infraTags
   }
 }
+
+module monitorModule './central-monitor.bicep' = {
+  name: '${deployment().name}-monitorDeploy'
+  params: {
+    projectName: projectName
+    tags: infraTags
+  }
+}
