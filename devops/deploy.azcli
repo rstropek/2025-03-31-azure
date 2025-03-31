@@ -16,3 +16,15 @@ RG=$(echo $RGNAMES | jq -r .rgName.value)
 SUBSCRIPTION=$(echo $RGNAMES | jq -r .subscriptionId.value)
 echo "Resource group: $RG"
 echo "Subscription ID: $SUBSCRIPTION"
+
+# Deploy Central Infrastructure
+DEPLOY_RESULT=$(az deployment group create \
+    --resource-group $RG \
+    --name Deployment-$(date +"%Y-%m-%dT%H-%M-%S") \
+    --template-file central-infrastructure.bicep \
+    --parameters \
+        projectName=$PROJECT_NAME \
+        tags="{\"Project\":\"$PROJECT_NAME\"}" \
+    | jq .properties.outputs)
+ACR_NAME=$(echo $DEPLOY_RESULT | jq -r .registryName.value)
+echo "ACR name: $ACR_NAME"
