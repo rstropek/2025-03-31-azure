@@ -28,3 +28,16 @@ module oaiModule './project-oai.bicep' = {
     tags: tags
   }
 }
+
+module appserviceModule './project-appservice.bicep' = {
+  name: '${deployment().name}-appserviceDeploy'
+  params: {
+    projectName: projectName
+    tags: tags
+  }
+  dependsOn: [
+    appInsightsModule
+    postgresModule
+    oaiModule
+  ]
+}
