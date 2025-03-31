@@ -1,0 +1,7 @@
+.mypy_cache
+devops
+.dockerignore
+Dockerfile
+readme.md
+.gitignore
+.git
