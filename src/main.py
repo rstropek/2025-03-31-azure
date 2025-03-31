@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+import os
 
 from typing import Union
 import asyncio
@@ -16,8 +16,17 @@ configure_azure_monitor()
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer(__name__)
 
-app = FastAPI()
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+token_provider = get_bearer_token_provider(
+    DefaultAzureCredential(exclude_managed_identity_credential=(os.getenv("EXCLUDE_MANAGED_IDENTITY") == "true")), "https://cognitiveservices.azure.com/.default"
+)
 
+# Import database module
+from db import create_and_fill_vector_table, create_managed_identity_user, create_vector, execute_query, vector_search
+
+from openai import AzureOpenAI
+
+app = FastAPI()
 
 @app.get("/")
 async def read_root():
@@ -27,4 +36,76 @@ async def read_root():
         logger.warning("In span")
     return {"Hello": "World"}
 
+@app.get("/items/{item_id}")
+def read_item(item_id: int, q: Union[str, None] = None):
+    return {"item_id": item_id, "q": q}
+
+@app.get("/db/test")
+async def test_db_connection():
+    """Test the database connection"""
+    try:
+        # Simple test query that works on any PostgreSQL database
+        result = await execute_query("SELECT current_timestamp as time, current_database() as database")
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+@app.get("/db/create")
+async def create_managed_identity_user_handler(identity: str = "testuser"):
+    try:
+        result = await create_managed_identity_user(identity)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error(f"Database error: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+@app.get("/openai")
+async def openai_test():
+    try:
+        client = AzureOpenAI(
+            azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT"), 
+            azure_ad_token_provider=token_provider,
+            api_version="2025-03-01-preview"
+        )
+
+        response = client.responses.create(
+            model=os.getenv("MODEL_NAME"), 
+            input="Are dolphin fish?",
+            max_output_tokens=4096 # Note that this currently is required for new responses API (preview)
+        )
+
+        return {"status": "success", "data": response.output_text}
+    except Exception as e:
+        logger.error(f"OpenAI error: {e}")
+        return str(e)
+
+@app.get("/embeddings")
+async def create_and_fill_vector_table_handler():
+    try:
+        result = await create_and_fill_vector_table()
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.get("/vector")
+async def create_vector_handler():
+    try:
+        result = await create_vector()
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    
+@app.get("/vector/search")
+async def vector_search_handler(query: str):
+    try:
+        result = await vector_search(query)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    
 FastAPIInstrumentor.instrument_app(app)

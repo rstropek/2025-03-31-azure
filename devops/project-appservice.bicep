@@ -22,7 +22,7 @@ resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2022-01-31-p
 }
 
 resource registry 'Microsoft.ContainerRegistry/registries@2022-02-01-preview' existing = {
-  name: '${abbrs.containerRegistryRegistries}${uniqueString(projectName)}'
+  name: '${abbrs.containerRegistryRegistries}${uniqueString(projectName, 'abc')}'
 }
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
